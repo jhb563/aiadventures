@@ -4,12 +4,12 @@
     <ClInclude Include="Source\TheArchitectAIModule.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Source\Economy\resourcemanager.h" />
-    <ClInclude Include="Source\buildcommand.h" />
+    <ClInclude Include="Source\Economy\buildmanager.h" />
+    <ClInclude Include="Source\Economy\productionmanager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\TheArchitectAIModule.cpp" />
     <ClCompile Include="Source\Dll.cpp" />
-    <ClCompile Include="Source\buildcommand.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TheArchitectAIModule.rc" />

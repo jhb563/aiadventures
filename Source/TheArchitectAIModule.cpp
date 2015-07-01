@@ -4,10 +4,6 @@
 using namespace BWAPI;
 using namespace Filter;
 
-// Made too many SCVs? Supply depot is a little late
-// Made too many barracks (Do I need some form of checking if each command is being executed already?
-// - As in, onFrame() is occuring too quickly?
-// Do I need to rethink the thread safety/concurrency aspects of what I'm doing?
 
 /////////////////////////////////////////////////
 ///////// Constructor/Destructor ////////////////
@@ -15,70 +11,15 @@ using namespace Filter;
 
 TheArchitectAIModule::TheArchitectAIModule()
 {
-	// Initialize class variables
-	initializeClassValues();
+	// Nothing to do yet
 }
 
 TheArchitectAIModule::~TheArchitectAIModule()
 {
-	std::map<UnitType, std::list<Unit>*>::iterator iter;
-	for (iter = builderList.begin(); iter != builderList.end(); ++iter) {
-		delete iter->second;
-	}
+	// Nothing to do yet
 }
 
-/////////////////////////////////////////////////
-///////// Initialization Methods ////////////////
-/////////////////////////////////////////////////
 
-// Initialize all class variables for our AI module
-void TheArchitectAIModule::initializeClassValues()
-{
-	// Create our list of builders
-	initializeBuilderTypes();
-
-	// Make our initial command queue
-	initializeQueue();
-}
-
-void TheArchitectAIModule::initializeBuilderTypes()
-{
-	// Gather list of all builder types and initialize our map to our builders
-	UnitType scvType = UnitTypes::Terran_SCV;
-	UnitType ccType = UnitTypes::Terran_Command_Center;
-	UnitType barracksType = UnitTypes::Terran_Barracks;
-	UnitType factoryType = UnitTypes::Terran_Factory;
-	UnitType starportType = UnitTypes::Terran_Starport;
-
-	static int numBuilders_ = 5;
-	static UnitType builderTypes[5] = { scvType, ccType, barracksType, factoryType, starportType };
-
-	builderList = std::map<UnitType, std::list<Unit>*>();
-	for (int i = 0; i < numBuilders_; ++i) {
-		UnitType type = builderTypes[i];
-		builderList[type] = new std::list<Unit>();
-	}
-}
-
-void TheArchitectAIModule::initializeQueue()
-{
-	
-	commandQueue = std::priority_queue<BuildCommand, std::vector<BuildCommand>, BuildCommandCompare>();
-	UnitType scvType = UnitTypes::Terran_SCV;
-	UnitType supplyDepotType = UnitTypes::Terran_Supply_Depot;
-	UnitType barracksType = UnitTypes::Terran_Barracks;
-	commandQueue.push(BuildCommand(scvType, 10));
-	commandQueue.push(BuildCommand(scvType, 10));
-	commandQueue.push(BuildCommand(scvType, 10));
-	commandQueue.push(BuildCommand(scvType, 10));
-	commandQueue.push(BuildCommand(scvType, 10));
-	commandQueue.push(BuildCommand(supplyDepotType, 9));
-	commandQueue.push(BuildCommand(scvType, 8));
-	commandQueue.push(BuildCommand(scvType, 8));
-	commandQueue.push(BuildCommand(scvType, 8));
-	commandQueue.push(BuildCommand(scvType, 8));
-	commandQueue.push(BuildCommand(barracksType, 7));
-}
 
 /////////////////////////////////////////////////
 ///////// BWAPI Callbacks ///////////////////////
@@ -162,16 +103,6 @@ void TheArchitectAIModule::onFrame()
 
 
 
-	// Examine the top item in our command queue. If we can build it, do so!
-	BuildCommand top = commandQueue.top();
-	int mins = Broodwar->self()->minerals();
-	int gas = Broodwar->self()->gas();
-	int supplyRoom = Broodwar->self()->supplyTotal() - Broodwar->self()->supplyUsed();
-	if (top.canCompleteOrder(mins, gas, supplyRoom)) {
-		if (executeCommand(top)) {
-			commandQueue.pop();
-		}
-	}
 
 	// Iterate through all the units that we own
 	for (auto &u : Broodwar->self()->getUnits())
@@ -334,73 +265,5 @@ void TheArchitectAIModule::onSaveGame(std::string gameName)
 	Broodwar << "The game was saved to \"" << gameName << "\"" << std::endl;
 }
 
-void TheArchitectAIModule::onUnitComplete(BWAPI::Unit unit)
-{
-	// If the finished unit is a "builder unit" SCV/Barracks/CC/Factory/Starports,
-	// add it to a list of of things that make stuff.
-	std::map<UnitType, std::list<Unit>*>::iterator iter;
-	UnitType typeForUnit = unit->getType();
-	iter = builderList.find(typeForUnit);
-	if (iter != builderList.end()) {
-		std::list<Unit>* listForType = iter->second;
-		listForType->push_back(unit);
-	}
-}
 
 
-
-// Exectures a build command, either trying to make a unit or a structure
-// Assumes that we already have enough minerals/gas/supply for this command,
-// but could still fail if there are no idle builder. Thus it returns true
-// if it succeeds, false otherwise.
-bool TheArchitectAIModule::executeCommand(BuildCommand command)
-{
-	UnitType type = command.getUnitType();
-	if (type.isBuilding()) {
-		UnitType buildType = type.whatBuilds().first; // Should be SCV
-		std::list<Unit> buildersOfThisType = *builderList[buildType];
-		for (Unit& u : buildersOfThisType) {
-			if (u->exists()) {
-				if (u->isIdle() || u->isGatheringMinerals()) {
-					TilePosition targetBuildLocation = Broodwar->getBuildLocation(type, u->getTilePosition());
-					if (targetBuildLocation)
-					{
-						Broodwar->sendText("Starting to construct building!");
-						// Order the builder to construct the supply structure
-						u->build(type, targetBuildLocation);
-						return true;
-					}
-				} // End isIdle/Gathering
-			} // End exists
-
-		} // End unit loop
-	}
-	else {
-		// Assume this is a unit
-		UnitType buildType = type.whatBuilds().first;
-		std::list<Unit> buildersOfThisType = *builderList[buildType];
-		for (Unit& u : buildersOfThisType) {
-			if (u->exists()) {
-				if (u->isIdle()) {
-					if (u->train(type)) {
-						return true;
-					}
-					else {
-						// If that fails, draw the error at the location so that you can visibly see what went wrong!
-						// However, drawing the error once will only appear for a single frame
-						// so create an event that keeps it on the screen for some frames
-						Position pos = u->getPosition();
-						Error lastErr = Broodwar->getLastError();
-						Broodwar->registerEvent([pos, lastErr](Game*){ Broodwar->drawTextMap(pos, "%c%s", Text::White, lastErr.c_str()); },   // action
-							nullptr,    // condition
-							Broodwar->getLatencyFrames());  // frames to run
-					}
-				} // End isIdle
-			} // End exists
-			
-		} // End unit loop
-
-	} // End else
-	// If we got this far, then we didn't build anything!
-	return false;
-}

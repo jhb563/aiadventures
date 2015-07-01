@@ -12,12 +12,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Source\buildcommand.h" />
+    <ClInclude Include="Source\Economy\buildmanager.h" />
+    <ClInclude Include="Source\Economy\productionmanager.h" />
     <ClInclude Include="Source\Economy\resourcemanager.h" />
     <ClInclude Include="Source\TheArchitectAIModule.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\buildcommand.cpp" />
     <ClCompile Include="Source\Dll.cpp" />
     <ClCompile Include="Source\TheArchitectAIModule.cpp" />
   </ItemGroup>
@@ -73,7 +73,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include;./Source/economy;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

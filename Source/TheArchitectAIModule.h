@@ -1,7 +1,9 @@
 #pragma once
 #include <BWAPI.h>
-#include "buildcommand.h"
 #include <queue>
+#include <resourcemanager.h>
+#include <buildmanager.h>
+#include <productionmanager.h>
 
 // Remember not to use "Broodwar" in any global class constructor!
 
@@ -28,7 +30,7 @@ public:
 	virtual void onUnitComplete(BWAPI::Unit unit); 
 	// Everything below this line is safe to modify.
 
-	// Need the define default constructor and destructor
+	// Need to define default constructor and destructor
 	TheArchitectAIModule();
 	~TheArchitectAIModule();
 
@@ -38,41 +40,9 @@ private:
 	TheArchitectAIModule(const TheArchitectAIModule& other);
 	TheArchitectAIModule* operator=(const TheArchitectAIModule& other);
 
-	struct BuildCommandCompare {
-		bool operator() (const BuildCommand& lhs, const BuildCommand& rhs) {
-			return lhs.getPriority() < rhs.getPriority();
-		}
-	};
-
-	// Order Priority Queue
-	std::priority_queue<BuildCommand, std::vector<BuildCommand>, BuildCommandCompare> commandQueue;
-
-	
-
-	// Builder Map
-	// Maps from the type of unit to a list of the units we have of that type
-	std::map<BWAPI::UnitType, std::list<BWAPI::Unit>*> builderList;
-
-	// Method to be called to initialize all class values
-	void initializeClassValues();
-
-	// Method to initialize our list of builders
-	void initializeBuilderTypes();
-
-	// Method to be called to initialize our command queue at the start of the game.
-	void initializeQueue();
-
-	// Method to be called to execute a build command
-	// Input:
-	//	The command to be exectured
-	//
-	// Output:
-	//	Whether or not the command was successful
-	bool executeCommand(BuildCommand command);
-
-	
-
-	
-
-
+	// We have a pointer to the ResourceManager, BuildManager, and the
+	// ProductionManager
+	ResourceManager* resourceManager_;
+	BuildManager* buildManager_;
+	ProductionManager* productionManager_;
 };
