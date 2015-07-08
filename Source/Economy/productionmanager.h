@@ -19,6 +19,10 @@ The main AIModule and ResourceManager must have access to this.
 class ProductionManager
 {
 public:
+	
+	ProductionManager();
+	~ProductionManager();
+
 	// Adds the given structure to the appropriate list
 	void addStructure(BWAPI::Unit unit);
 
@@ -28,8 +32,12 @@ public:
 
 
 private:
+	// Disable copy constructor and assignment operator
+	ProductionManager(const ProductionManager&);
+	ProductionManager& operator=(const ProductionManager&);
+
 	// The list of buildings we have to build units with
-	std::map<BWAPI::UnitType, std::deque<BWAPI::Unit>> productionBuildings;
+	std::map<BWAPI::UnitType, std::deque<BWAPI::Unit>*> productionBuildings_;
 };
 
 #endif

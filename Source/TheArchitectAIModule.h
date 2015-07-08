@@ -4,6 +4,7 @@
 #include <resourcemanager.h>
 #include <buildmanager.h>
 #include <productionmanager.h>
+#include <strategymanager.h>
 
 // Remember not to use "Broodwar" in any global class constructor!
 
@@ -45,4 +46,7 @@ private:
 	ResourceManager* resourceManager_;
 	BuildManager* buildManager_;
 	ProductionManager* productionManager_;
+
+	// We also have a pointer to the strategy manager
+	StrategyManager* strategyManager_;
 };

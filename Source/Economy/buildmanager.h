@@ -21,6 +21,10 @@ The main AIModule and ResourceManager must have access to this.
 class BuildManager
 {
 public:
+	// As of now, the compiler provided constructor and destructor are fine.
+	BuildManager() = default;
+	~BuildManager() = default;
+
 	// Called in the onComplete callback of the AIModule. Adds the produced
 	// SCV to our list of builders.
 	void addSCV(BWAPI::Unit scvToAdd);
@@ -31,8 +35,12 @@ public:
 	bool buildStructure(BWAPI::UnitType type);
 
 private:
+	// Disable copy constructor and assignment operator
+	BuildManager(const BuildManager&);
+	BuildManager& operator=(const BuildManager&);
+
 	// The list of scvs at our disposal for building things
-	std::unordered_set<BWAPI::Unit> scvs;
+	std::unordered_set<BWAPI::Unit> scvs_;
 };
 
 #endif

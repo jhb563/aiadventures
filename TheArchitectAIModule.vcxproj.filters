@@ -6,10 +6,15 @@
     <ClInclude Include="Source\Economy\resourcemanager.h" />
     <ClInclude Include="Source\Economy\buildmanager.h" />
     <ClInclude Include="Source\Economy\productionmanager.h" />
+    <ClInclude Include="Source\Economy\strategymanager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\TheArchitectAIModule.cpp" />
     <ClCompile Include="Source\Dll.cpp" />
+    <ClCompile Include="Source\Economy\resourcemanager.cpp" />
+    <ClCompile Include="Source\Economy\buildmanager.cpp" />
+    <ClCompile Include="Source\Economy\productionmanager.cpp" />
+    <ClCompile Include="Source\Economy\strategymanager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TheArchitectAIModule.rc" />

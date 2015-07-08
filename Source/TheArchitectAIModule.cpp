@@ -11,12 +11,20 @@ using namespace Filter;
 
 TheArchitectAIModule::TheArchitectAIModule()
 {
-	// Nothing to do yet
+	
+	productionManager_ = new ProductionManager();
+	buildManager_ = new BuildManager();
+	resourceManager_ = new ResourceManager(buildManager_, productionManager_);
+	// Initialize the Strategy Manager
+	strategyManager_ = new StrategyManager();
 }
 
 TheArchitectAIModule::~TheArchitectAIModule()
 {
-	// Nothing to do yet
+	delete resourceManager_;
+	delete productionManager_;
+	delete buildManager_;
+	delete strategyManager_;
 }
 
 
@@ -101,8 +109,24 @@ void TheArchitectAIModule::onFrame()
 	if (Broodwar->getFrameCount() % Broodwar->getLatencyFrames() != 0)
 		return;
 
+	// See if it is time for a new order from the strategy manager, and enqueue any
+	// returned orders.
+	int currentFrame = Broodwar->getFrameCount();
+	
+	std::list<UnitType>* nextOrders = strategyManager_->getOrdersForTime(currentFrame);
+	if (nextOrders->size() > 0) {
+		// Broodwar->sendText("Orders to enqueue!");
+	}
+	for (UnitType t : *nextOrders) {
+		// Broodwar->sendText("Enqueuing Request");
+		resourceManager_->enqueueRequest(t);
+	}
+	delete nextOrders;
+	
+		
 
-
+	// Give out build orders using the resource manager
+	resourceManager_->useQueue();
 
 	// Iterate through all the units that we own
 	for (auto &u : Broodwar->self()->getUnits())
@@ -216,6 +240,7 @@ void TheArchitectAIModule::onUnitEvade(BWAPI::Unit unit)
 
 void TheArchitectAIModule::onUnitShow(BWAPI::Unit unit)
 {
+	// Inform the strategy manager of the unit seen
 }
 
 void TheArchitectAIModule::onUnitHide(BWAPI::Unit unit)
@@ -235,10 +260,18 @@ void TheArchitectAIModule::onUnitCreate(BWAPI::Unit unit)
 			Broodwar->sendText("%.2d:%.2d: %s creates a %s", minutes, seconds, unit->getPlayer()->getName().c_str(), unit->getType().c_str());
 		}
 	}
+
+	// Notify the resource manager that the resource have been spent
+	if (unit->getPlayer() == Broodwar->self()) {
+		resourceManager_->spentResources(unit->getType());
+		// Broodwar->sendText("%s",unit->getType().getName());
+	}
+	
 }
 
 void TheArchitectAIModule::onUnitDestroy(BWAPI::Unit unit)
 {
+	// Inform the strategy manager of the unit destruction, so that it can make adjustments.
 }
 
 void TheArchitectAIModule::onUnitMorph(BWAPI::Unit unit)
@@ -263,6 +296,20 @@ void TheArchitectAIModule::onUnitRenegade(BWAPI::Unit unit)
 void TheArchitectAIModule::onSaveGame(std::string gameName)
 {
 	Broodwar << "The game was saved to \"" << gameName << "\"" << std::endl;
+}
+
+void TheArchitectAIModule::onUnitComplete(BWAPI::Unit unit)
+{
+	// Inform the strategy manager that the unit has been completed, receiving a list of
+	// new unit types to be produced.
+	UnitType type = unit->getType();
+	if (type == UnitTypes::Terran_SCV) {
+		buildManager_->addSCV(unit);
+	}
+	else if (type == UnitTypes::Terran_Barracks || type == UnitTypes::Terran_Factory || type == UnitTypes::Terran_Starport || type == UnitTypes :: Terran_Command_Center) {
+		productionManager_->addStructure(unit);
+	}
+	
 }
 
 
